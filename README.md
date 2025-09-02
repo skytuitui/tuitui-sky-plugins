@@ -1,0 +1,1 @@
+This library is used for the task guide and data query function of the game (Sky Light · Encounter), and will be gradually updated and improved. Currently, everything is maintained normally. If there are any infringing projects, please contact us for deletion.
