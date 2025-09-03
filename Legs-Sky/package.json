@@ -1,1 +1,13 @@
-
+{
+  "name": "Legs-Sky",
+  "version": "1.0.0",
+  "description": "云崽国际服任务攻略插件，自动获取国际服每日任务图片",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "node-fetch": "^3.0.0",
+    "oicq": "*"
+  },
+  "author": "TgLegs",
+  "license": "MIT"
+}
