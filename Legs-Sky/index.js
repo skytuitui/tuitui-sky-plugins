@@ -1,5 +1,7 @@
 import fetch from 'node-fetch';
 import { config, downloadImages, sendImages } from './sky-utils/index.js';
+import isMaster from './sky-utils/isMaster.js';
+import { exec } from 'child_process';
 
 let plugin;
 const pluginPaths = [
@@ -53,7 +55,10 @@ async function getTaskImages() {
 export class InternationalTaskPlugin extends (plugin.default || plugin) {
     constructor() {
         super({
-            rule: [{ reg: /^国际服任务$/, fnc: 'handleTaskQuery' }]
+            rule: [
+                { reg: /^国际服任务$/, fnc: 'handleTaskQuery' },
+                { reg: /^#tgsky更新$/, fnc: 'updatePlugin' }
+            ]
         });
     }
 
@@ -71,6 +76,21 @@ export class InternationalTaskPlugin extends (plugin.default || plugin) {
             await e.reply(`${failMsg}：${err.message}`);
             console.error(`[国际服任务] 错误: ${err.stack}`);
         }
+    }
+
+    async updatePlugin(e) {
+        if (!isMaster(e)) {
+            await e.reply('❌ 只有机器人主人才能执行此命令！');
+            return;
+        }
+        await e.reply('🔄 正在更新插件，请稍候...');
+        exec('cd plugins/LegsSky-plugins && git pull', (error, stdout, stderr) => {
+            if (error) {
+                e.reply(`❌ 插件更新失败：${error.message}`);
+            } else {
+                e.reply('✅ 插件已更新完成！请重启机器人使更新生效。');
+            }
+        });
     }
 }
 
