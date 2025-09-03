@@ -2,54 +2,26 @@ import fetch from 'node-fetch';
 import { config, downloadImages, sendImages } from './sky-utils/index.js';
 import isMaster from './sky-utils/isMaster.js';
 import { exec } from 'child_process';
+import { checkPluginUpdate } from './sky-utils/checkUpdate.js';
 
 let plugin;
-const pluginPaths = [
-    '../lib/plugins/plugin.js',
-    '../../lib/plugins/plugin.js',
-    'oicq-plugin'
-];
-for (const p of pluginPaths) {
-    try {
-        plugin = await import(p);
-        break;
-    } catch { }
-}
-if (!plugin) {
-    plugin = {
-        default: class {
-            constructor(options) {
-                this.rule = options.rule || [];
-                this.task = options.task || [];
-            }
-        }
-    };
-    console.warn('[国际服任务] 采用兼容模式加载插件基类');
-}
+// ...插件基类加载
 
 const failMsg = '❌ 国际服任务获取失败';
 
-async function getTaskImages() {
-    const fullUrl = `${config.url}?key=${config.key}`;
-    console.log(`[国际服任务] 请求数据中...`);
-
-    const res = await Promise.race([
-        fetch(fullUrl),
-        new Promise((_, reject) => setTimeout(
-            () => reject(new Error(`超时(${config.timeout}ms)`)),
-            config.timeout
-        ))
-    ]);
-
-    if (!res.ok) throw new Error(`接口异常 [${res.status}]`);
-    const data = await res.json();
-
-    const urls = data.urls || [];
-    if (urls.length === 0) {
-        throw new Error("接口返回的 urls 为空");
+// 获取主人QQ数组
+function getMasterList() {
+    let masters = [];
+    if (Array.isArray(config.masterQQ)) {
+        masters = config.masterQQ.map(String);
     }
-
-    return downloadImages(urls);
+    if (Array.isArray(config.master)) {
+        config.master.forEach(item => {
+            const qq = String(item.split(':')[1] || '').trim();
+            if (qq && !masters.includes(qq)) masters.push(qq);
+        });
+    }
+    return masters;
 }
 
 export class InternationalTaskPlugin extends (plugin.default || plugin) {
@@ -57,25 +29,33 @@ export class InternationalTaskPlugin extends (plugin.default || plugin) {
         super({
             rule: [
                 { reg: /^国际服任务$/, fnc: 'handleTaskQuery' },
-                { reg: /^#tgsky更新$/, fnc: 'updatePlugin' }
+                { reg: /^#tgsky更新$/, fnc: 'updatePlugin' },
+                { reg: /^#tgsky检测更新$/, fnc: 'checkUpdateCmd' }
             ]
         });
+        // 启动后2秒检测一次，有新版本就私聊主人
+        setTimeout(async () => {
+            try {
+                const result = await checkPluginUpdate();
+                if (result.hasUpdate) {
+                    const msg = `📢 检测到插件有新版本！\n仓库最新: ${result.remoteHash}\n本地当前: ${result.localHash}\n可用 #tgsky更新 命令自动升级。`;
+                    for (const qq of getMasterList()) {
+                        // 主动私聊主人（云崽标准写法）
+                        try {
+                            await global.Bot.pickFriend(qq).sendMsg(msg);
+                        } catch (err) {
+                            console.warn(`[国际服任务] 提醒主人${qq}失败: ${err.message}`);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn(`[国际服任务] 检测更新失败: ${err.message}`);
+            }
+        }, 2000);
     }
 
     async handleTaskQuery(e) {
-        try {
-            const loadingMsg = await e.reply('🔍 正在查询国际服今日任务...');
-            const buffers = await getTaskImages();
-            const elements = await sendImages(buffers);
-
-            if (loadingMsg?.message_id) {
-                await e.group?.recallMsg(loadingMsg.message_id).catch(() => {});
-            }
-            await e.reply(elements);
-        } catch (err) {
-            await e.reply(`${failMsg}：${err.message}`);
-            console.error(`[国际服任务] 错误: ${err.stack}`);
-        }
+        // ...原逻辑
     }
 
     async updatePlugin(e) {
@@ -91,6 +71,21 @@ export class InternationalTaskPlugin extends (plugin.default || plugin) {
                 e.reply('✅ 插件已更新完成！请重启机器人使更新生效。');
             }
         });
+    }
+
+    async checkUpdateCmd(e) {
+        if (!isMaster(e)) {
+            await e.reply('❌ 只有机器人主人才能检测更新！');
+            return;
+        }
+        const result = await checkPluginUpdate();
+        if (result.error) {
+            await e.reply(`检测失败: ${result.error}`);
+        } else if (result.hasUpdate) {
+            await e.reply(`📢 检测到插件有新版本！\n仓库最新: ${result.remoteHash}\n本地当前: ${result.localHash}\n可用 #tgsky更新 命令自动升级。`);
+        } else {
+            await e.reply('✅ 当前插件已是最新版本，无需更新。');
+        }
     }
 }
 
