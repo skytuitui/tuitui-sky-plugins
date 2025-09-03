@@ -1,4 +1,5 @@
-import { downloadImages, sendImages, config } from './sky-utils/index.js';
+import fetch from 'node-fetch';
+import { config, downloadImages, sendImages } from './sky-utils/index.js';
 
 let plugin;
 const pluginPaths = [
