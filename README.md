@@ -23,5 +23,5 @@
 - 所有插件均为私人使用，不对外公开。
 - 如需添加新功能，直接在对应文件夹修改 index.js 后 git push 即可。
 
-作者：腿腿 / GitHub：tuituige  
+作者：腿腿 / GitHub：skytuitui
 最后更新：2025年12月
