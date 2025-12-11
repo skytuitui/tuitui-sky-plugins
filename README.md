@@ -15,9 +15,9 @@
 
 ## 安装命令（仅自己）
 在机器人群/私聊发送：
-#安装 https://tuituige:Token@github.com/tuituige/my-yunzai-plugins.git
+#安装 https://skytuitui:Token@github.com/tuituige/my-yunzai-plugins.git
 更新所有插件：
-#更新 https://tuituige:Token@github.com/tuituige/my-yunzai-plugins.git
+#更新 https://skytuitui:Token@github.com/tuituige/my-yunzai-plugins.git
 ## 注意
 - 所有插件均为私人使用，不对外公开。
 - 如需添加新功能，直接在对应文件夹修改 index.js 后 git push 即可。
