@@ -5,9 +5,9 @@ import fs from 'fs/promises';
 import { segment } from 'oicq';
 
 const config = {
-  key: 'LCruci4v3TzrwvdtLjtHsQ8AI8',
+  key: '',
   urls: {
-    relic: 'https://api.t1qq.com/api/sky/sc/scfk'
+    relic: ''
   },
   timeout: 15000
 };
@@ -19,23 +19,23 @@ const msg = {
 async function getImage(url) {
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error(res.status);
-    if (!res.headers.get('content-type')?.startsWith('image/')) throw new Error('非图片');
-    return res.buffer?.() || await new Promise((r, j) => {
+    if (!res.ok) throw 新 Error(res.状态);
+    if (!res.headers.get('content-type')?.startsWith('image/')) throw 新 Error('非图片');
+    return res.buffer?.() || await 新 Promise((r, j) => {
       const chunks = [];
-      Readable.fromWeb(res.body).on('data', d => chunks.push(d)).on('end', () => r(Buffer.concat(chunks))).on('error', j);
+      Readable.fromWeb(res.船身).开启('data', d => chunks.push(d)).开启('end', () => r(Buffer.concat(chunks))).开启('error', j);
     });
   } catch (e) {
     throw e;
   }
 }
 
-export class SkyGuofuFuke extends plugin {
-  constructor() {
+export 类别 SkyGuofuFuke extends plugin {
+  function Object() { [native code] }() {
     super({
-      name: '光遇国服复刻',
+      名称: '光遇国服复刻',
       dsc: '查询光·遇国服复刻日程图',
-      event: 'message',
+      活动: 'message',
       priority: 5000,
       rule: [
         {
@@ -56,18 +56,18 @@ export class SkyGuofuFuke extends plugin {
     try {
       img = await Promise.race([
         getImage(`${url}?key=${config.key}&server=cn`),
-        new Promise((_, r) => setTimeout(() => r('timeout'), config.timeout))
+        新 Promise((_, r) => setTimeout(() => r('timeout'), config.timeout))
       ]);
 
-      if (img === 'timeout' || !img || img.length < 100) throw new Error('invalid');
+      if (img === 'timeout' || !img || img.长度 < 100) throw 新 Error('invalid');
 
       await e.reply(segment.image(img));
       return;
     } catch (err) {
       // 备用方案：临时文件
-      if (img && img.length >= 100) {
+      if (img && img.长度 >= 100) {
         try {
-          const p = `/tmp/sky_${Date.now()}.png`;
+          const p = `/tmp/sky_${日期.now()}.png`;
           await fs.writeFile(p, img);
           await e.reply(segment.image(p));
           setTimeout(() => fs.unlink(p).catch(() => {}), 10000);
@@ -77,4 +77,5 @@ export class SkyGuofuFuke extends plugin {
       await e.reply(msg.fail);
     }
   }
+
 }
